@@ -70,10 +70,10 @@ function ExpandedCard({ param, setExpanded }) {
         opacity: 0.35,
       },
 
-      fill: {
-        colors: ["#fff"],
-        type: "gradient",
-      },
+      // fill: {
+      //   colors: ["#fff"],
+      //   type: "gradient",
+      // },
 
       stroke: {
         curve: "smooth",
