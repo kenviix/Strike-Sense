@@ -7,100 +7,77 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import "./Table.css";
+import PropTypes, { element } from 'prop-types';
+import Box from '@mui/material/Box';
+import Collapse from '@mui/material/Collapse';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import { punchData } from "../../Data/Data";
 
-function createData(punchPower, punchSpeed, reflexTime, totalPunches, blockedPunches, accuracy) {
-  return { punchPower, punchSpeed, reflexTime, totalPunches, blockedPunches, accuracy };
+
+function createData(date, totalPunches, blockedPunches, accuracy, history) {
+  return {
+    date, totalPunches, blockedPunches, accuracy, history,
+  };
+};
+
+export const accuracy = {}
+
+for (const data in punchData) {
+  let blockedPunches = 0;
+  let totalPunches = 0;
+  const dayData = []
+  punchData[data].forEach(element => {
+    // console.log(element);
+
+    const historyData = { "time": element[4], "punchPower": element[0], "punchSpeed": element[1], "isBlocked": element[3] ? "No" : "Yes" };
+    dayData.push(historyData)
+    totalPunches += 1;
+    if (element[3] === 0) {
+      blockedPunches += 1;
+    }
+
+
+  });
+
+  accuracy[data] = { "totalPunches": totalPunches, "blockedPunches": blockedPunches, "accuracy": (100 - ((blockedPunches / totalPunches) * 100)).toFixed(2), "history": dayData }
 }
 
-const rows = [
-  createData(243, 32.68, 189, 193, 4, 17, 7, 58.82
-  ),
-  createData(807, 26.76, 126, 179, 53, 19, 9, 52.63)
-  , createData(326, 46.77, 111, 196, 85, 20, 10, 50)
-  , createData(360, 27.22, 154, 330, 176, 20, 13, 35)
-  , createData(848, 45.52, 95, 353, 258, 10, 6, 40)
-  , createData(252, 35.13, 159, 291, 132, 14, 11, 21.43)
-  , createData(571, 37.28, 157, 489, 332, 12, 7, 41.67)
-  , createData(738, 31.48, 79, 247, 168, 11, 2, 81.82)
-  , createData(263, 39.83, 101, 100, 1, 17, 16, 5.88)
-  , createData(320, 31.59, 167, 216, 49, 14, 12, 14.29)
-
-];
 
 
-const makeStyle = (status) => {
-  if (status === 'Approved') {
-    return {
-      background: 'rgb(145 254 159 / 47%)',
-      color: 'green',
-    }
-  }
-  else if (status === 'Pending') {
-    return {
-      background: '#ffadad8f',
-      color: 'red',
-    }
-  }
-  else {
-    return {
-      background: '#59bfff',
-      color: 'white',
-    }
-  }
+const rows = [];
+
+for (const [key, value] of Object.entries(accuracy)) {
+  const rowData = createData(key, value.totalPunches, value.blockedPunches, value.accuracy, value.history);
+  rows.push(rowData)
 }
+
+
+
+
+
 
 export default function BasicTable() {
   return (
     <div className="Table">
       <h3>Recent Punches</h3>
-      <TableContainer
-        component={Paper}
-        style={{ boxShadow: "0px 13px 20px 0px #80808029" }}
-      >
-        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+
+      <TableContainer component={Paper}>
+        <Table aria-label="collapsible table">
           <TableHead>
             <TableRow>
-
-              <TableCell >Punch Power (N)</TableCell>
-              <TableCell align="left">Punch Speed (km/h)
-              </TableCell>
-              <TableCell align="left">Reflex Time (ms)
-              </TableCell>
-              <TableCell align="left">Total Punches
-              </TableCell>
-              <TableCell align="left">Blocked Punches
-              </TableCell>
-              <TableCell align="left">Accuracy (%)
-
-              </TableCell>
+              <TableCell />
+              <TableCell >Date</TableCell>
+              <TableCell align="center">Total Punches</TableCell>
+              <TableCell align="center">Blocked Punches</TableCell>
+              <TableCell align="center">Accuracy</TableCell>
             </TableRow>
           </TableHead>
-          <TableBody style={{ color: "white" }}>
+          <TableBody>
             {rows.map((row) => (
-              <TableRow
-                key={row.name}
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-              >
-                <TableCell component="th" scope="row">
-                  {row.punchPower}
-                </TableCell>
-                <TableCell component="th" scope="row">
-                  {row.punchSpeed}
-                </TableCell>
-                <TableCell component="th" scope="row">
-                  {row.reflexTime}
-                </TableCell>
-                <TableCell component="th" scope="row">
-                  {row.totalPunches}
-                </TableCell>
-                <TableCell component="th" scope="row">
-                  {row.blockedPunches}
-                </TableCell>
-                <TableCell component="th" scope="row">
-                  {(100 - (((row.blockedPunches * 100) / row.totalPunches))).toFixed(2)}
-                </TableCell>
-
-              </TableRow>
+              <Row key={row.name} row={row} />
             ))}
           </TableBody>
         </Table>
@@ -108,3 +85,88 @@ export default function BasicTable() {
     </div>
   );
 }
+
+
+
+function Row(props) {
+  const { row } = props;
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <React.Fragment>
+      <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
+        <TableCell>
+          <IconButton
+            aria-label="expand row"
+            size="small"
+            onClick={() => setOpen(!open)}
+          >
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+        </TableCell>
+        <TableCell component="th" scope="row">
+          {row.date}
+        </TableCell>
+        <TableCell align="center">{row.totalPunches}</TableCell>
+        <TableCell align="center">{row.blockedPunches}</TableCell>
+        <TableCell align="center">{row.accuracy}%</TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box sx={{ margin: 1 }}>
+
+              <Table size="small" aria-label="purchases">
+                <TableHead>
+                  <TableRow><TableCell />
+                    <TableCell align="center">Time</TableCell>
+                    <TableCell align="center">Punch Power (N)</TableCell>
+                    <TableCell align="center">Punch Speed (Km/h)</TableCell>
+                    <TableCell align="center">Blocked</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+
+                  {row.history.map((historyRow) => (
+                    <TableRow key={historyRow.time}>
+                      <TableCell />
+                      <TableCell component="th" scope="row" align="center">
+                        {historyRow.time}
+                      </TableCell>
+                      <TableCell align="center">{historyRow.punchPower}</TableCell>
+                      <TableCell align="center" >{historyRow.punchSpeed}</TableCell>
+                      <TableCell align="center">
+                        {historyRow.isBlocked}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+
+    </React.Fragment>
+  );
+}
+
+Row.propTypes = {
+  row: PropTypes.shape({
+    date: PropTypes.string.isRequired,
+    totalPunches: PropTypes.number.isRequired,
+    blockedPunches: PropTypes.number.isRequired,
+    accuracy: PropTypes.string.isRequired,
+    history: PropTypes.arrayOf(
+      PropTypes.shape({
+        time: PropTypes.string.isRequired,
+        punchPower: PropTypes.number.isRequired,
+        punchSpeed: PropTypes.number.isRequired,
+        isBlocked: PropTypes.bool.isRequired,
+      }),
+    ).isRequired,
+
+  }).isRequired,
+};
+
+

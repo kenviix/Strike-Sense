@@ -5,6 +5,10 @@ import "react-circular-progressbar/dist/styles.css";
 import { motion, AnimateSharedLayout } from "framer-motion";
 import { UilTimes } from "@iconscout/react-unicons";
 import Chart from "react-apexcharts";
+import { time } from "../../Data/Data";
+import { date } from "../../Data/Data";
+
+
 
 // parent Card
 
@@ -23,7 +27,6 @@ const Card = (props) => {
 
 // Compact Card
 function CompactCard({ param, setExpanded }) {
-  const Png = param.png;
   return (
     <motion.div
       className="CompactCard"
@@ -38,14 +41,14 @@ function CompactCard({ param, setExpanded }) {
         {param.title === "Accuracy" ? <CircularProgressbar
           value={param.barValue}
           text={`${param.barValue}%`}
-        /> : <span >{param.barValue}</span>}
+        /> : <span >{param.barValue} {param.unit}</span>}
 
         <span>{param.title}</span>
       </div>
       <div className="detail">
         <span>{param.heading}</span>
         <span>{param.value} {param.unit}</span>
-        <span>Last 24 hours</span>
+        <span></span>
       </div>
     </motion.div>
   );
@@ -79,13 +82,16 @@ function ExpandedCard({ param, setExpanded }) {
         curve: "smooth",
         colors: ["white"],
       },
-
+      dataLabels: {
+        enabled: false
+      },
       grid: {
         show: true,
       },
       xaxis: {
-        categories: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        categories: time
       },
+
 
 
     },
