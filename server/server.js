@@ -1,114 +1,46 @@
+const awsIot = require("aws-iot-device-sdk");
+const WebSocket = require("ws");
 const express = require("express");
+const cors = require("cors");
+
 const app = express();
-require("dotenv").config();
+app.use(cors()); // Allow cross-origin requests
 
-const {
-  DynamoDBClient,
-  ListTablesCommand,
-  PutItemCommand,
-  GetItemCommand,
-  ScanCommand,
-} = require("@aws-sdk/client-dynamodb");
+const server = require("http").createServer(app);
+const wss = new WebSocket.Server({ server });
 
-const client = new DynamoDBClient({
-  region: "ap-south-1",
-  credentials: {
-    accessKeyId: "AKIA5FCD6WGKOK4Z7N4A",
-    secretAccessKey: "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",
-  },
+const device = awsIot.device({
+  keyPath:
+    "./Certs/70f532b4af9479f74a29297c222cfb1100a7f87351385b32c58ea59e32f25cfc-private.pem.key", // Path to your private key
+  certPath:
+    "./Certs/70f532b4af9479f74a29297c222cfb1100a7f87351385b32c58ea59e32f25cfc-certificate.pem.crt", // Path to your certificate
+  caPath: "./Certs/AmazonRootCA1.pem", // AWS IoT Root CA
+  clientId: "iotconsole-50d9f1c5-093b-4cea-a5de-d05a870a3fc0", // Unique Client ID
+  host: "a2c52zdkyunxoy-ats.iot.ap-south-1.amazonaws.com", // Replace with your AWS IoT Core endpoint
 });
-const tableName = "StrikeTable1";
-const allItems = [];
+// Connect to AWS IoT Core
+device.on("connect", () => {
+  console.log("Connected to AWS IoT Core");
+  device.subscribe("$aws/things/Strike-sense/shadow/update"); // Subscribe to the topic
+});
 
-async function main(params) {
-  // const putItemCommand = new PutItemCommand({
-  //   TableName: "demo",
-  //   Item: {
-  //     serial_no: {
-  //       S: "0001",
-  //     },
-  //     name: {
-  //       S: "AJ",
-  //     },
-  //   },
-  // });
-  // await client.send(putItemCommand);
+// Broadcast messages to connected WebSocket clients
+device.on("message", (topic, payload) => {
+  const message = payload.toString();
+  console.log(`Received: ${message}`);
 
-  //---------------get--------------------------
-
-  // const getItemCommand = new GetItemCommand({
-  //   TableName: "StrikeTable1",
-  //   Key: {
-  //     "Punch Id": { N: "7" },
-  //   },
-  // });
-
-  // const responce = await client.send(getItemCommand);
-  // console.log({
-  //   items: responce.Item,
-  // });
-
-  let exclusiveStartKey = undefined;
-
-  do {
-    const scanParams = {
-      TableName: tableName,
-      ExclusiveStartKey: exclusiveStartKey,
-    };
-
-    const scanCommand = new ScanCommand(scanParams);
-
-    try {
-      const response = await client.send(scanCommand);
-      allItems.push(...response.Items);
-      exclusiveStartKey = response.LastEvaluatedKey;
-    } catch (error) {
-      console.error("Error scanning DynamoDB table:", error);
-      break;
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
     }
-  } while (exclusiveStartKey);
-
-  return allItems;
-}
-
-(async () => {
-  const allRecords = await main();
-  console.log("All records:", allRecords);
-  app.get("/userData", (req, res) => {
-    res.json({ All_records: allRecords });
   });
-})();
-
-main().catch((err) => {
-  console.log(err);
 });
 
-// const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
-// const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-
-// const s3Client = new S3Client({
-//   region: "ap-south-1",
-//   credentials: {
-//     accessKeyId: "AKIA5FCD6WGKFHALKCUM",
-//     secretAccessKey: "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",
-//   },
-// });
-
-// async function getObjectURL(key) {
-//   const command = new GetObjectCommand({
-//     Bucket: "strikesense-data",
-//     Key: key,
-//   });
-
-//   const url = getSignedUrl(s3Client, command);
-//   return url;
-// }
-
-// async function init() {
-//   console.log("url", await getObjectURL("strike_sense_punch_data.csv"));
-// }
-// init();
-
-app.listen(5000, () => {
-  console.log("server started on port 5000");
+// WebSocket connection for React frontend
+wss.on("connection", (ws) => {
+  console.log("Client connected");
+  ws.on("close", () => console.log("Client disconnected"));
 });
+
+// Start server
+server.listen(5000, () => console.log("Server running on port 5000"));
