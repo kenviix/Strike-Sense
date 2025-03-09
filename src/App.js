@@ -4,6 +4,20 @@ import MainDash from "./components/MainDash/MainDash";
 import RightSide from "./components/RigtSide/RightSide";
 import Sidebar from "./components/Sidebar";
 import useWebSocket from "react-use-websocket";
+const styles = {
+  heading: {
+    fontSize: "48px", // Large font size
+    fontWeight: "bold", // Bold text
+    color: "#333", // Dark gray color
+    textAlign: "center", // Center alignment
+    margin: "20px 0", // Top and bottom spacing
+  },
+  subText: {
+    fontSize: "24px", // Medium font
+    color: "#555", // Lighter gray
+    textAlign: "center",
+  },
+};
 
 function App() {
   const [message, setMessage] = useState(null);
@@ -42,64 +56,48 @@ function App() {
     },
   });
 
-  // return (
-  //   <div style={{ textAlign: "center", marginTop: "50px" }}>
-  //     <h1>IoT Dashboard</h1>
-  //     <h2>Received Data:</h2>
-  //     {message ? (
-  //       <pre
-  //         style={{ background: "#ddd", padding: "10px", borderRadius: "5px" }}
-  //       >
-  //         {JSON.stringify(message, null, 2)}
-  //       </pre>
-  //     ) : (
-  //       <p>Waiting for data...</p>
-  //     )}
-  //   </div>
-  // );
   return (
-    <div className="App">
-      <div className="AppGlass">
-        <Sidebar />
-        <MainDash punchData={punchData} />
-        <RightSide />
-      </div>
+    <div style={{ textAlign: "center", marginTop: "50px" }}>
+      <h1>IoT Dashboard</h1>
+      <h2>Received Data:</h2>
+      {message ? (
+        <pre
+          style={{ background: "#ddd", padding: "10px", borderRadius: "5px" }}
+        >
+          <p style={styles.heading}>
+            Date: {message.data["timestamp"].substring(0, 11)}
+          </p>
+          <p style={styles.heading}>
+            Time: {message.data["timestamp"].substring(11, 19)}
+          </p>
+          <p style={styles.heading}>
+            Punch Power: {message.data["Punch power (N)"]}
+          </p>
+          <p style={styles.heading}>
+            Punch Speed:{message.data["Punch Speed (km/h)"]}
+          </p>
+          <p style={styles.heading}>
+            Reflex Time: {message.data["Reflex time (ms)"]}
+          </p>
+          <p style={styles.heading}>
+            Was Blocked: {message.data["isblocked"] === 0 ? "No" : "Yes"}
+          </p>
+        </pre>
+      ) : (
+        <p>Waiting for data...</p>
+      )}
     </div>
   );
+
+  // return (
+  //   <div className="App">
+  //     <div className="AppGlass">
+  //       <Sidebar />
+  //       <MainDash punchData={punchData} />
+  //       <RightSide />
+  //     </div>
+  //   </div>
+  // );
 }
 
 export default App;
-
-// function App() {
-//   const [backendData, setBackendData] = useState([{}]);
-
-//   useEffect(() => {
-//     fetch("/userData")
-//       .then((res) => res.json())
-//       .then((data) => {
-//         const records = data.All_records;
-//         for (const [key, value] of Object.entries(records)) {
-//           const mainKey = value.timestamp.S.substring(0, 11);
-//           const data = [];
-//           data.push(value["Punch Speed (km/h)"].N);
-//           data.push(value["Punch Speed (km/h)"].N);
-//           data.push(value["Punch Id"].N);
-//           data.push(value["Punch Id"].N);
-//           punchData[mainKey] = data;
-//         }
-//         console.log(punchData);
-//       });
-//   }, []);
-
-//   return (
-//     <div className="App">
-//       <div className="AppGlass">
-//         <Sidebar />
-//         <MainDash />
-//         <RightSide />
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default App;
