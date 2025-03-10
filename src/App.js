@@ -4,6 +4,10 @@ import MainDash from "./components/MainDash/MainDash";
 import RightSide from "./components/RigtSide/RightSide";
 import Sidebar from "./components/Sidebar";
 import useWebSocket from "react-use-websocket";
+import ReactApexChart from "react-apexcharts";
+import ApexCharts from "./ApexCharts";
+import PricingContainer from "./components/pricing-component/pricing-component-container";
+
 const styles = {
   heading: {
     fontSize: "48px", // Large font size
@@ -38,32 +42,31 @@ function App() {
 
   return (
     <div>
-      {message ? (
-        <pre
-          style={{ background: "#ddd", padding: "10px", borderRadius: "5px" }}
-        >
-          <p style={styles.heading}>
-            Date: {message.data["timestamp"].substring(0, 11)}
-          </p>
-          <p style={styles.heading}>
-            Time: {message.data["timestamp"].substring(11, 19)}
-          </p>
-          <p style={styles.heading}>
-            Punch Power: {message.data["Punch power (N)"]}
-          </p>
-          <p style={styles.heading}>
-            Punch Speed:{message.data["Punch Speed (km/h)"]}
-          </p>
-          <p style={styles.heading}>
-            Reflex Time: {message.data["Reflex time (ms)"]}
-          </p>
-          <p style={styles.heading}>
-            Was Blocked: {message.data["isblocked"] === 0 ? "No" : "Yes"}
-          </p>
-        </pre>
-      ) : (
-        <p>Waiting for data...</p>
-      )}
+      <div>
+        {message ? (
+          <div>
+            <PricingContainer
+              punch={[
+                message.data["timestamp"].substring(0, 11),
+                message.data["timestamp"].substring(11, 19),
+                message.data["Punch power (N)"],
+                message.data["Punch Speed (km/h)"],
+                message.data["Reflex time (ms)"],
+                message.data["isblocked"] === 0 ? "No" : "Yes",
+              ]}
+            ></PricingContainer>
+            {/* <ApexCharts
+              punch={[
+                message.data["Punch power (N)"],
+                message.data["Punch Speed (km/h)"],
+                message.data["Reflex time (ms)"],
+              ]}
+            ></ApexCharts> */}
+          </div>
+        ) : (
+          <p>Waiting for data...</p>
+        )}
+      </div>
     </div>
   );
 }
