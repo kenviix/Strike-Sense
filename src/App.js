@@ -30,20 +30,40 @@ function App() {
     setSocket(ws);
 
     ws.onopen = () => console.log("Connected to WebSocket");
-    ws.onmessage = (event) => setMessage(event.data);
+    ws.onmessage = (event) => setMessage(JSON.parse(event.data));
     ws.onclose = () => console.log("WebSocket Disconnected");
 
     return () => ws.close();
   }, []);
 
-  const sendMessage = () => {
-    if (socket) socket.send("Hello from React!");
-  };
-
   return (
     <div>
-      <h1>WebSocket Message: {message}</h1>
-      <button onClick={sendMessage}>Send Message</button>
+      {message ? (
+        <pre
+          style={{ background: "#ddd", padding: "10px", borderRadius: "5px" }}
+        >
+          <p style={styles.heading}>
+            Date: {message.data["timestamp"].substring(0, 11)}
+          </p>
+          <p style={styles.heading}>
+            Time: {message.data["timestamp"].substring(11, 19)}
+          </p>
+          <p style={styles.heading}>
+            Punch Power: {message.data["Punch power (N)"]}
+          </p>
+          <p style={styles.heading}>
+            Punch Speed:{message.data["Punch Speed (km/h)"]}
+          </p>
+          <p style={styles.heading}>
+            Reflex Time: {message.data["Reflex time (ms)"]}
+          </p>
+          <p style={styles.heading}>
+            Was Blocked: {message.data["isblocked"] === 0 ? "No" : "Yes"}
+          </p>
+        </pre>
+      ) : (
+        <p>Waiting for data...</p>
+      )}
     </div>
   );
 }
