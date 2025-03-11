@@ -52,7 +52,7 @@ function App() {
 
     return () => ws.close();
   }, []);
-  console.log(punchData);
+  // console.log(punchData);
 
   return (
     <div>

@@ -57,6 +57,8 @@ function CompactCard({ param, setExpanded }) {
 
 // Expanded Card
 function ExpandedCard({ param, setExpanded }) {
+  console.log(param);
+
   const time = param.time
   const date = param.date
   const data = {
@@ -91,10 +93,10 @@ function ExpandedCard({ param, setExpanded }) {
       grid: {
         show: true,
       },
-      xaxis: param.title === "accuracy" ? {
-        categories: time
-      } : {
+      xaxis: param.title === "Accuracy" ? {
         categories: date
+      } : {
+        categories: time
       },
 
     },
