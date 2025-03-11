@@ -1,44 +1,58 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import MainDash from "./components/MainDash/MainDash";
-import RightSide from "./components/RigtSide/RightSide";
-import Sidebar from "./components/Sidebar";
-import useWebSocket from "react-use-websocket";
-import ReactApexChart from "react-apexcharts";
-import ApexCharts from "./ApexCharts";
-import PricingContainer from "./components/pricing-component/pricing-component-container";
 
-const styles = {
-  heading: {
-    fontSize: "48px", // Large font size
-    fontWeight: "bold", // Bold text
-    color: "#333", // Dark gray color
-    textAlign: "center", // Center alignment
-    margin: "20px 0", // Top and bottom spacing
-  },
-  subText: {
-    fontSize: "24px", // Medium font
-    color: "#555", // Lighter gray
-    textAlign: "center",
-  },
-};
+import PricingContainer from "./components/pricing-component/pricing-component-container";
+import Cards from "./components/Cards/Cards";
+import "./components/MainDash/MainDash.css";
+import { addPunchData, getPunchData } from "./Data/Data";
 
 const WS_URL = "wss://aws-production-4ef1.up.railway.app"; // Replace with actual WebSocket URL
 
 function App() {
   const [message, setMessage] = useState("");
   const [socket, setSocket] = useState(null);
+  const [punchData, setPunchData] = useState({});
 
   useEffect(() => {
     const ws = new WebSocket(WS_URL);
     setSocket(ws);
 
     ws.onopen = () => console.log("Connected to WebSocket");
-    ws.onmessage = (event) => setMessage(JSON.parse(event.data));
-    ws.onclose = () => console.log("WebSocket Disconnected");
+    ws.onmessage = (event) => {
+      try {
+        const newData = JSON.parse(event.data); // Assuming the message is in JSON format
+        setMessage(newData);
+        const value = [
+          newData.data["Punch power (N)"],
+          newData.data["Punch Speed (km/h)"],
+          newData.data["Reflex time (ms)"],
+          newData.data["isblocked"],
+          newData.data["timestamp"].substring(11, 19),
+        ];
+        addPunchData(newData.data.timestamp.substring(0, 11), value);
+        setPunchData(getPunchData());
+      } catch (error) {
+        console.error("Error parsing WebSocket message", error);
+      }
+
+      ws.onclose = () => {
+        console.log("WebSocket Disconnected");
+      };
+
+      ws.onerror = (error) => {
+        console.error("WebSocket Error:", error);
+      };
+
+      // Cleanup function to close WebSocket when component unmounts
+      return () => {
+        ws.close();
+      };
+    };
 
     return () => ws.close();
   }, []);
+  console.log(punchData);
 
   return (
     <div>
@@ -55,13 +69,13 @@ function App() {
                 message.data["isblocked"] === 0 ? "No" : "Yes",
               ]}
             ></PricingContainer>
-            {/* <ApexCharts
-              punch={[
-                message.data["Punch power (N)"],
-                message.data["Punch Speed (km/h)"],
-                message.data["Reflex time (ms)"],
-              ]}
-            ></ApexCharts> */}
+            <div style={{ padding: "0px 150px 50px 150px" }}>
+              <Cards
+                punchData={punchData}
+                currentPower={message.data["Punch power (N)"]}
+                currentSpeed={message.data["Punch Speed (km/h)"]}
+              />
+            </div>
           </div>
         ) : (
           <p>Waiting for data...</p>
@@ -72,88 +86,3 @@ function App() {
 }
 
 export default App;
-
-//-------------------------------------------------------------------------
-
-// function App() {
-//   const [message, setMessage] = useState(null);
-
-//   const [punchData, setPunchData] = useState({});
-
-//   const updateObject = (key, value) => {
-//     if (punchData.hasOwnProperty(key)) {
-//       setPunchData((prevData) => ({
-//         [key]: [...prevData[key], value],
-//       }));
-//     } else {
-//       setPunchData((currentState) => {
-//         return { ...currentState, [key]: [value] };
-//       });
-//     }
-//   };
-
-//   console.log(punchData);
-
-//   // Connect to WebSocket server
-//   useWebSocket("ws://localhost:5000", {
-//     onMessage: (event) => {
-//       JSON.parse(event.data);
-//       setMessage(JSON.parse(event.data)); // Parse incoming JSON data
-//       if (message) {
-//         const value = [
-//           message.data["Punch power (N)"],
-//           message.data["Punch Speed (km/h)"],
-//           message.data["Reflex time (ms)"],
-//           message.data["isblocked"],
-//           message.data["timestamp"].substring(11, 19),
-//         ];
-//         updateObject(message.data.timestamp.substring(0, 11), value);
-//       }
-//     },
-//   });
-
-//   return (
-//     <div style={{ textAlign: "center", marginTop: "50px" }}>
-//       <h1>IoT Dashboard</h1>
-//       <h2>Received Data:</h2>
-//       {message ? (
-//         <pre
-//           style={{ background: "#ddd", padding: "10px", borderRadius: "5px" }}
-//         >
-//           <p style={styles.heading}>
-//             Date: {message.data["timestamp"].substring(0, 11)}
-//           </p>
-//           <p style={styles.heading}>
-//             Time: {message.data["timestamp"].substring(11, 19)}
-//           </p>
-//           <p style={styles.heading}>
-//             Punch Power: {message.data["Punch power (N)"]}
-//           </p>
-//           <p style={styles.heading}>
-//             Punch Speed:{message.data["Punch Speed (km/h)"]}
-//           </p>
-//           <p style={styles.heading}>
-//             Reflex Time: {message.data["Reflex time (ms)"]}
-//           </p>
-//           <p style={styles.heading}>
-//             Was Blocked: {message.data["isblocked"] === 0 ? "No" : "Yes"}
-//           </p>
-//         </pre>
-//       ) : (
-//         <p>Waiting for data...</p>
-//       )}
-//     </div>
-//   );
-
-//   // return (
-//   //   <div className="App">
-//   //     <div className="AppGlass">
-//   //       <Sidebar />
-//   //       <MainDash punchData={punchData} />
-//   //       <RightSide />
-//   //     </div>
-//   //   </div>
-//   // );
-// }
-
-// export default App;

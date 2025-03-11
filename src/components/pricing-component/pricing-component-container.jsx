@@ -9,7 +9,6 @@ class PricingContainer extends Component {
 
 
   render() {
-    console.log(this.props.punch);
     return (
       <div className="pricing-container">
         <img src={bgtop} alt="" />

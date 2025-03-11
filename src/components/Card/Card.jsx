@@ -5,14 +5,14 @@ import "react-circular-progressbar/dist/styles.css";
 import { motion, AnimateSharedLayout } from "framer-motion";
 import { UilTimes } from "@iconscout/react-unicons";
 import Chart from "react-apexcharts";
-import { time } from "../../Data/Data";
-import { date } from "../../Data/Data";
+
 
 
 
 // parent Card
 
 const Card = (props) => {
+
   const [expanded, setExpanded] = useState(false);
   return (
     <AnimateSharedLayout>
@@ -27,6 +27,7 @@ const Card = (props) => {
 
 // Compact Card
 function CompactCard({ param, setExpanded }) {
+
   return (
     <motion.div
       className="CompactCard"
@@ -56,6 +57,8 @@ function CompactCard({ param, setExpanded }) {
 
 // Expanded Card
 function ExpandedCard({ param, setExpanded }) {
+  const time = param.time
+  const date = param.date
   const data = {
     options: {
       chart: {
@@ -88,15 +91,14 @@ function ExpandedCard({ param, setExpanded }) {
       grid: {
         show: true,
       },
-      xaxis: {
+      xaxis: param.title === "accuracy" ? {
         categories: time
+      } : {
+        categories: date
       },
-
-
 
     },
   };
-
 
 
   return (
