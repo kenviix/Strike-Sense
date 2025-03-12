@@ -23,7 +23,10 @@ const Cards = (props) => {
       }
       totalPunches += 1;
       time.push(`${key} ${element[4]}`);
-      date.push(key);
+      if (!date.includes(key)) {
+        date.push(key);
+      }
+
     });
     accuracy.push((100 - (blockedPunches / totalPunches) * 100).toFixed(2));
   }
